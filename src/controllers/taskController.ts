@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import Task from '../models/taskModel';
-import { getIssuesFromJira } from '../services/jiraService';
 
 export const getAllTasks = async (req: Request, res: Response): Promise<void> => {
     const page = parseInt(req.query.page as string) || 1;
@@ -21,19 +20,6 @@ export const getAllTasks = async (req: Request, res: Response): Promise<void> =>
   };
   
 
-export const syncTasksFromJira = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const jiraIssues = await getIssuesFromJira();
-    const tasks = await Task.create(jiraIssues.map((issue: any) => ({
-      title: issue.fields.summary,
-      description: issue.fields.description,
-      status: issue.fields.status.name.toLowerCase()
-    })));
-    res.status(201).json(tasks);
-  } catch (error:any) {
-    res.status(500).json({ message: error.message });
-  }
-};
 
 export const getTaskById = async (req: Request, res: Response): Promise<void> => {
     const taskId = req.params.id;
@@ -103,17 +89,8 @@ export const getTaskById = async (req: Request, res: Response): Promise<void> =>
     try {
       const tasks = await Task.find({ title: { $regex: searchQuery, $options: 'i' } });
       res.status(200).json(tasks);
-    } catch (error) {
+    } catch (error:any) {
       res.status(500).json({ message: error.message });
     }
   };
   
-  export const sortTasksByTitle = async (req: Request, res: Response): Promise<void> => {
-    const sortOrder = req.query.order as string || 'asc';
-    try {
-      const tasks = await Task.find().sort({ title: sortOrder });
-      res.status(200).json(tasks);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  };
