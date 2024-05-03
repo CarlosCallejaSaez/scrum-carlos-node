@@ -3,13 +3,23 @@ import Task from '../models/taskModel';
 import { getIssuesFromJira } from '../services/jiraService';
 
 export const getAllTasks = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const tasks = await Task.find();
-    res.status(200).json(tasks);
-  } catch (error:any) {
-    res.status(500).json({ message: error.message });
-  }
-};
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    try {
+      const tasks = await Task.find()
+        .skip((page - 1) * limit)
+        .limit(limit);
+      const totalCount = await Task.countDocuments();
+      res.status(200).json({
+        tasks,
+        totalPages: Math.ceil(totalCount / limit),
+        currentPage: page
+      });
+    } catch (error:any) {
+      res.status(500).json({ message: error.message });
+    }
+  };
+  
 
 export const syncTasksFromJira = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -84,6 +94,26 @@ export const getTaskById = async (req: Request, res: Response): Promise<void> =>
       const tasks = await Task.find({ status });
       res.status(200).json(tasks);
     } catch (error:any) {
+      res.status(500).json({ message: error.message });
+    }
+  };
+
+  export const searchTasksByTitle = async (req: Request, res: Response): Promise<void> => {
+    const searchQuery = req.query.q as string;
+    try {
+      const tasks = await Task.find({ title: { $regex: searchQuery, $options: 'i' } });
+      res.status(200).json(tasks);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  };
+  
+  export const sortTasksByTitle = async (req: Request, res: Response): Promise<void> => {
+    const sortOrder = req.query.order as string || 'asc';
+    try {
+      const tasks = await Task.find().sort({ title: sortOrder });
+      res.status(200).json(tasks);
+    } catch (error) {
       res.status(500).json({ message: error.message });
     }
   };

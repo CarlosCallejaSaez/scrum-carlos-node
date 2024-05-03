@@ -9,6 +9,9 @@ const PORT = process.env.PORT ;
 
 app.use(express.json());
 app.use('/tasks', taskRoutes);
+app.get("*", (req, res) => {
+  res.status(404).send("404 Error: Route not found")
+});
 
 const mongoURI = process.env.MONGODB;
 
