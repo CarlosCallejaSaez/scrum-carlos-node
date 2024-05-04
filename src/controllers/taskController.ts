@@ -94,3 +94,32 @@ export const getTaskById = async (req: Request, res: Response): Promise<void> =>
     }
   };
   
+  export const assignTask = async (req: Request, res: Response): Promise<void> => {
+    const taskId = req.params.id;
+    const { userId } = req.body;
+    try {
+      const updatedTask = await Task.findByIdAndUpdate(taskId, { assignedTo: userId }, { new: true });
+      if (!updatedTask) {
+        res.status(404).json({ message: 'Task not found' });
+        return;
+      }
+      res.status(200).json(updatedTask);
+    } catch (error:any) {
+      res.status(400).json({ message: error.message });
+    }
+  };
+  
+  export const updateTaskStatus = async (req: Request, res: Response): Promise<void> => {
+    const taskId = req.params.id;
+    const { status } = req.body;
+    try {
+      const updatedTask = await Task.findByIdAndUpdate(taskId, { status }, { new: true });
+      if (!updatedTask) {
+        res.status(404).json({ message: 'Task not found' });
+        return;
+      }
+      res.status(200).json(updatedTask);
+    } catch (error:any) {
+      res.status(400).json({ message: error.message });
+    }
+  };
